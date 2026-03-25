@@ -1,0 +1,17 @@
+[tasks.run]
+dependencies = ["start_tun_interface", "sleep_task", "test_tun_interface"]
+
+[tasks.start_tun_interface]
+command = "cargo"
+args = ["run"]
+cwd = "../vpn_client"
+background = true
+
+[tasks.test_tun_interface]
+command = "ping"
+args = ["10.0.0.1"]
+
+[tasks.sleep_task]
+description = "Sleeps for 5 seconds"
+command = "powershell"
+args = ["-Command", "Start-Sleep -Seconds 10"]

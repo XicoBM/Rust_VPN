@@ -26,13 +26,13 @@ fn process_packet(data: &[u8]) {
     let ip_version: u8 = (data[0] >> 4) & 0xF;
 
     if ip_version == 4 {
-        let origin_ip = Ipv4Addr::from(
+        let origin_ip: Ipv4Addr = Ipv4Addr::from(
             <[u8; 4]>::try_from(&data[12..16]).expect("Couldn't reach the IP of origin"),
         );
-        let destin_ip = Ipv4Addr::from(
+        let destin_ip: Ipv4Addr = Ipv4Addr::from(
             <[u8; 4]>::try_from(&data[16..20]).expect("Couldn't reach the IP of destination"),
         );
-        let protocol = data[9];
+        let protocol: u8 = data[9];
 
         println!(
             "Packet: {} → {} [{}]",
