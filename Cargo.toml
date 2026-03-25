@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "vpn_client",
+    "vpn_core",
+    "vpn_server",
+]
+
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "*", features = [ "full" ] }
