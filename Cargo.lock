@@ -590,6 +590,9 @@ dependencies = [
 [[package]]
 name = "vpn_server"
 version = "0.1.0"
+dependencies = [
+ "tokio",
+]
 
 [[package]]
 name = "wasi"
