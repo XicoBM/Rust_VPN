@@ -1,12 +1,9 @@
-use std::{error::Error, net::Ipv4Addr, sync::Arc};
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::UdpSocket,
-};
+use std::{net::Ipv4Addr, sync::Arc};
+use tokio::{join, net::UdpSocket, task::spawn_blocking};
 use wintun::{load, Adapter, Packet, Session};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn main() -> () {
     // TUN interface config
     let wintun = unsafe { load() }.expect("Wintun DDL not found");
     let wintun_adapter: Arc<Adapter> =
@@ -27,19 +24,54 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         .expect("It was not possible to connect to server specified.");
     let socket: Arc<UdpSocket> = Arc::new(socket);
 
-    loop {
-        let packet: Packet = session.clone().receive_blocking()?;
-        let sock: UdpSocket = socket.clone();
+    let session_a: Arc<Session> = Arc::clone(&session);
+    let socket_a: Arc<UdpSocket> = Arc::clone(&socket);
 
-        // Shows the TUN Interface working
+    let session_b: Arc<Session> = Arc::clone(&session);
+    let socket_b: Arc<UdpSocket> = Arc::clone(&socket);
+
+    join!(
+        tun_to_udp(session_a, socket_a),
+        udp_to_tun(session_b, socket_b)
+    );
+}
+
+// Receives TUN (wintun in this case) package and converts it into an UDP package
+async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () {
+    loop {
+        let packet_res: Result<Packet, wintun::Error> = wintun_session.clone().receive_blocking();
+        let packet: Packet = Result::expect(packet_res, "Could not extract the package data");
         let data: &[u8] = packet.bytes();
+
         process_packet(data);
 
-        // UDP Tunneling
-        tun_to_udp(packet, sock);
+        let len: usize = socket
+            .send(data)
+            .await
+            .expect("Could not send data through UDP tunnel.");
+        println!("{:?} bytes sent", len);
+    }
+}
 
-        // UDP tunneling answer/response
-        udp_to_tun();
+// Receives the server response and converts it into a TUN package
+async fn udp_to_tun(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () {
+    loop {
+        let mut buf: [u8; 1504] = [0; 1504];
+        let res: usize = socket
+            .recv(&mut buf)
+            .await
+            .expect("Failed to receive server answer.");
+        let size: u16 = Result::expect(
+            u16::try_from(res),
+            "Could not convert buffer size into the correct numeric type",
+        );
+
+        let temp: Result<Packet, wintun::Error> = wintun_session.allocate_send_packet(size);
+        let mut packet_out: Packet =
+            Result::expect(temp, "Could not convert outing packet correctly");
+        let packat_bytes: &mut [u8] = packet_out.bytes_mut();
+        packat_bytes.copy_from_slice(&buf);
+        wintun_session.send_packet(packet_out);
     }
 }
 
@@ -76,16 +108,3 @@ fn process_packet(data: &[u8]) {
         );
     }
 }
-
-// Receives TUN (wintun in this case) package and converts it into an UDP package
-async fn tun_to_udp(packet: Packet, socket: UdpSocket) -> () {
-    let data: &[u8] = packet.bytes();
-    let len: usize = socket
-        .send(data)
-        .await
-        .expect("Could not send data through UDP tunnel.");
-    println!("{:?} bytes sent", len);
-}
-
-// Receives the server response and converts it into a TUN package
-async fn udp_to_tun() -> () {}
