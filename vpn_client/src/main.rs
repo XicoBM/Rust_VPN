@@ -1,4 +1,4 @@
-use std::{net::Ipv4Addr, result::Result, sync::Arc};
+use std::{net::Ipv4Addr, process::Command, result::Result, sync::Arc, time::SystemTime};
 use tokio::{
     join,
     net::UdpSocket,
@@ -12,6 +12,21 @@ async fn main() -> () {
     let wintun = unsafe { load() }.expect("Wintun DDL not found");
     let wintun_adapter: Arc<Adapter> =
         Adapter::create(&wintun, "MyTun", "WireGuard", None).unwrap();
+
+    // Wintun IP config
+    let _output: Result<std::process::Output, std::io::Error> = Command::new("netsh")
+        .args([
+            "interface",
+            "ip",
+            "set",
+            "address",
+            "MyTun",
+            "static",
+            "10.0.0.9",
+            "255.255.255.0",
+        ])
+        .output();
+
     let session: Session = wintun_adapter
         .start_session(wintun::MAX_RING_CAPACITY)
         .unwrap();
@@ -99,8 +114,10 @@ fn process_packet(data: &[u8]) {
         );
         let protocol: u8 = data[9];
 
+        let current_time: SystemTime = SystemTime::now();
+
         println!(
-            "Packet: {} → {} [{}]",
+            "Packet: {} → {} [{}] at {:?}",
             origin_ip,
             destin_ip,
             match protocol {
@@ -111,7 +128,8 @@ fn process_packet(data: &[u8]) {
                     println!("Unknown protocol: {p}");
                     return;
                 }
-            }
+            },
+            current_time
         );
     }
 }
