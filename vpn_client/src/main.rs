@@ -1,5 +1,9 @@
-use std::{net::Ipv4Addr, sync::Arc};
-use tokio::{join, net::UdpSocket, task::spawn_blocking};
+use std::{net::Ipv4Addr, result::Result, sync::Arc};
+use tokio::{
+    join,
+    net::UdpSocket,
+    task::{spawn, spawn_blocking, JoinHandle},
+};
 use wintun::{load, Adapter, Packet, Session};
 
 #[tokio::main]
@@ -26,22 +30,25 @@ async fn main() -> () {
 
     let session_a: Arc<Session> = Arc::clone(&session);
     let socket_a: Arc<UdpSocket> = Arc::clone(&socket);
+    let handle_task_a: JoinHandle<()> = spawn(tun_to_udp(session_a, socket_a));
 
     let session_b: Arc<Session> = Arc::clone(&session);
     let socket_b: Arc<UdpSocket> = Arc::clone(&socket);
+    let handle_task_b: JoinHandle<()> = spawn(udp_to_tun(session_b, socket_b));
 
-    join!(
-        tun_to_udp(session_a, socket_a),
-        udp_to_tun(session_b, socket_b)
-    );
+    join!(handle_task_a, handle_task_b);
 }
 
 // Receives TUN (wintun in this case) package and converts it into an UDP package
 async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () {
     loop {
-        let packet_res: Result<Packet, wintun::Error> = wintun_session.clone().receive_blocking();
-        let packet: Packet = Result::expect(packet_res, "Could not extract the package data");
-        let data: &[u8] = packet.bytes();
+        let current_session: Arc<Session> = wintun_session.clone();
+        let packet: Result<Packet, wintun::Error> =
+            spawn_blocking(move || current_session.receive_blocking())
+                .await
+                .expect("Could not convert package.");
+        let temp_value: Packet = packet.expect("Could not extract the packet data");
+        let data: &[u8] = temp_value.bytes();
 
         process_packet(data);
 
@@ -70,7 +77,7 @@ async fn udp_to_tun(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
         let mut packet_out: Packet =
             Result::expect(temp, "Could not convert outing packet correctly");
         let packat_bytes: &mut [u8] = packet_out.bytes_mut();
-        packat_bytes.copy_from_slice(&buf);
+        packat_bytes.copy_from_slice(&buf[..res]);
         wintun_session.send_packet(packet_out);
     }
 }
