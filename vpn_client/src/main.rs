@@ -5,6 +5,7 @@ use tokio::{
     task::{spawn, spawn_blocking, JoinHandle},
 };
 use wintun::{load, Adapter, Packet, Session};
+use vpn_core::parse_data;
 
 #[tokio::main]
 async fn main() -> () {
@@ -65,13 +66,13 @@ async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
         let temp_value: Packet = packet.expect("Could not extract the packet data");
         let data: &[u8] = temp_value.bytes();
 
-        process_packet(data);
-
         let len: usize = socket
             .send(data)
             .await
             .expect("Could not send data through UDP tunnel.");
         println!("{:?} bytes sent", len);
+
+        parse_data(data);
     }
 }
 
@@ -94,42 +95,5 @@ async fn udp_to_tun(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
         let packat_bytes: &mut [u8] = packet_out.bytes_mut();
         packat_bytes.copy_from_slice(&buf[..res]);
         wintun_session.send_packet(packet_out);
-    }
-}
-
-fn process_packet(data: &[u8]) {
-    if data.len() < 20 {
-        println!("Invalid packet! ({} bytes)", data.len());
-        return;
-    }
-
-    let ip_version: u8 = (data[0] >> 4) & 0xF;
-
-    if ip_version == 4 {
-        let origin_ip: Ipv4Addr = Ipv4Addr::from(
-            <[u8; 4]>::try_from(&data[12..16]).expect("Couldn't reach the IP of origin"),
-        );
-        let destin_ip: Ipv4Addr = Ipv4Addr::from(
-            <[u8; 4]>::try_from(&data[16..20]).expect("Couldn't reach the IP of destination"),
-        );
-        let protocol: u8 = data[9];
-
-        let current_time: SystemTime = SystemTime::now();
-
-        println!(
-            "Packet: {} → {} [{}] at {:?}",
-            origin_ip,
-            destin_ip,
-            match protocol {
-                1 => "ICMP",
-                6 => "TCP",
-                17 => "UDP",
-                p => {
-                    println!("Unknown protocol: {p}");
-                    return;
-                }
-            },
-            current_time
-        );
     }
 }
