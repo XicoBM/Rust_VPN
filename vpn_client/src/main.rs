@@ -1,11 +1,16 @@
-use std::{net::Ipv4Addr, process::Command, result::Result, sync::Arc, time::SystemTime};
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    process::Command,
+    result::Result,
+    sync::Arc,
+};
 use tokio::{
     join,
     net::UdpSocket,
     task::{spawn, spawn_blocking, JoinHandle},
 };
+use vpn_core::{parse_data, parse_protocol, PacketFormat, Protocol};
 use wintun::{load, Adapter, Packet, Session};
-use vpn_core::parse_data;
 
 #[tokio::main]
 async fn main() -> () {
@@ -66,13 +71,23 @@ async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
         let temp_value: Packet = packet.expect("Could not extract the packet data");
         let data: &[u8] = temp_value.bytes();
 
-        let len: usize = socket
-            .send(data)
-            .await
-            .expect("Could not send data through UDP tunnel.");
-        println!("{:?} bytes sent", len);
-
-        parse_data(data);
+        let ans: Option<PacketFormat> = parse_data(data);
+        match ans {
+            Some(packet_format) => {
+                let len: usize = socket
+                    .send(data)
+                    .await
+                    .expect("Could not send data through UDP tunnel.");
+                let origin_ip: IpAddr = packet_format.ip_origin;
+                let destin_ip: IpAddr = packet_format.ip_destination;
+                let protocol: Protocol = packet_format.protocol;
+                println!(
+                    "{:?} bytes sent from {} to {} using {:?} protocol",
+                    len, origin_ip, destin_ip, protocol
+                );
+            }
+            None => println!("Invalid packet"),
+        }
     }
 }
 
