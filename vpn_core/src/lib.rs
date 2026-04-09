@@ -58,7 +58,7 @@ pub fn parse_data(data: &[u8]) -> Option<PacketFormat> {
     });
 }
 
-pub fn parse_protocol(protocol: u8) -> Protocol {
+fn parse_protocol(protocol: u8) -> Protocol {
     match protocol {
         1 => Protocol::ICMP,
         2 => Protocol::IGMP,

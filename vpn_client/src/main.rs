@@ -1,15 +1,10 @@
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    process::Command,
-    result::Result,
-    sync::Arc,
-};
+use std::{net::IpAddr, process::Command, result::Result, sync::Arc};
 use tokio::{
     join,
     net::UdpSocket,
     task::{spawn, spawn_blocking, JoinHandle},
 };
-use vpn_core::{parse_data, parse_protocol, PacketFormat, Protocol};
+use vpn_core::{parse_data, PacketFormat, Protocol};
 use wintun::{load, Adapter, Packet, Session};
 
 #[tokio::main]
@@ -42,7 +37,7 @@ async fn main() -> () {
     let socket: UdpSocket = UdpSocket::bind("0.0.0.0:8080")
         .await
         .expect("Could not config the UDP socket.");
-    let addr: &str = "127.0.0.1:12345"; // The address of the server goes here (still not defined)
+    let addr: &str = "0.0.0.0:12345"; // The address of the server goes here (still not defined)
     socket
         .connect(addr)
         .await
@@ -60,7 +55,7 @@ async fn main() -> () {
     join!(handle_task_a, handle_task_b);
 }
 
-// Receives TUN (wintun in this case) package and converts it into an UDP package
+// Receives TUN (wintun in this case) package and converts it into an UDP package - task a
 async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () {
     loop {
         let current_session: Arc<Session> = wintun_session.clone();
@@ -91,7 +86,7 @@ async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
     }
 }
 
-// Receives the server response and converts it into a TUN package
+// Receives the server response and converts it into a TUN package - task b
 async fn udp_to_tun(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () {
     loop {
         let mut buf: [u8; 1504] = [0; 1504];

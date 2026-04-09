@@ -593,6 +593,8 @@ name = "vpn_server"
 version = "0.1.0"
 dependencies = [
  "tokio",
+ "vpn_core",
+ "wintun",
 ]
 
 [[package]]
