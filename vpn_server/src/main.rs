@@ -8,7 +8,7 @@ use tokio::{
     net::UdpSocket,
     task::{spawn, spawn_blocking, JoinHandle},
 };
-use vpn_core::{parse_data, PacketFormat, Protocol};
+use vpn_core::packet::{parse_data, PacketFormat, Protocol};
 use wintun::{load, Adapter, Packet, Session};
 
 const INITIAL_IP_VALUE: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0);
@@ -38,7 +38,7 @@ async fn main() {
         .unwrap();
     let session: Arc<Session> = Arc::new(session);
 
-    let socket: UdpSocket = UdpSocket::bind("0.0.0.0:12345")
+    let socket: UdpSocket = UdpSocket::bind("127.0.0.1:12345")
         .await
         .expect("Failed to power up server.");
     let socket: Arc<UdpSocket> = Arc::new(socket);

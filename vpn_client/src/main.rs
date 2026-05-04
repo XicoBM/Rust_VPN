@@ -4,7 +4,7 @@ use tokio::{
     net::UdpSocket,
     task::{spawn, spawn_blocking, JoinHandle},
 };
-use vpn_core::{parse_data, PacketFormat, Protocol};
+use vpn_core::packet::{parse_data, PacketFormat, Protocol};
 use wintun::{load, Adapter, Packet, Session};
 
 #[tokio::main]
@@ -37,7 +37,7 @@ async fn main() -> () {
     let socket: UdpSocket = UdpSocket::bind("0.0.0.0:8080")
         .await
         .expect("Could not config the UDP socket.");
-    let addr: &str = "0.0.0.0:12345"; // The address of the server goes here (still not defined)
+    let addr: &str = "127.0.0.1:12345"; // The address of the server goes here (still not defined)
     socket
         .connect(addr)
         .await
