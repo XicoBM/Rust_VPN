@@ -1,4 +1,5 @@
 use std::net::IpAddr;
+use vpn_errors::packet::PacketError;
 
 pub struct PacketFormat {
     pub ip_origin: IpAddr,
@@ -21,9 +22,11 @@ pub enum Protocol {
     Unknown(u8),
 }
 
-pub fn parse_data(data: &[u8]) -> Option<PacketFormat> {
+const MINIMUM_PACKET_SIZE: usize = 20;
+
+pub fn parse_data(data: &[u8]) -> Result<PacketFormat, PacketError> {
     if data.len() < 20 {
-        return None;
+        return Err(PacketError::TooShort(data.len(), MINIMUM_PACKET_SIZE));
     }
 
     let ip_version: u8 = (data[0] >> 4) & 0xF;
@@ -48,10 +51,10 @@ pub fn parse_data(data: &[u8]) -> Option<PacketFormat> {
         );
         protocol = parse_protocol(data[6]);
     } else {
-        return None;
+        return Err(PacketError::UnknownIpVersion(ip_version));
     }
 
-    return Some(PacketFormat {
+    return Ok(PacketFormat {
         ip_origin: (origin_ip),
         ip_destination: (destin_ip),
         protocol: (protocol),

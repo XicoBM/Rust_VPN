@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 tokio = { workspace = true }
 vpn_core = { path = "../vpn_core" }
+vpn_errors = { path = "../vpn_errors" }
 wintun = "0.5.1"

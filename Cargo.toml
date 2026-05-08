@@ -3,6 +3,7 @@ members = [
     "vpn_client",
     "vpn_core",
     "vpn_server",
+    "vpn_errors",
 ]
 
 resolver = "2"

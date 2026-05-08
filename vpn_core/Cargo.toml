@@ -4,6 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-thiserror = "2.0.18"
 tokio = { workspace = true }
-
+vpn_errors = { path = "../vpn_errors" }

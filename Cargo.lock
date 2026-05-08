@@ -584,8 +584,15 @@ dependencies = [
 name = "vpn_core"
 version = "0.1.0"
 dependencies = [
- "thiserror 2.0.18",
  "tokio",
+ "vpn_errors",
+]
+
+[[package]]
+name = "vpn_errors"
+version = "0.1.0"
+dependencies = [
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -594,6 +601,7 @@ version = "0.1.0"
 dependencies = [
  "tokio",
  "vpn_core",
+ "vpn_errors",
  "wintun",
 ]
 

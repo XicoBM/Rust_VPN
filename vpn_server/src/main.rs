@@ -9,6 +9,7 @@ use tokio::{
     task::{spawn, spawn_blocking, JoinHandle},
 };
 use vpn_core::packet::{parse_data, PacketFormat, Protocol};
+use vpn_errors::packet::PacketError;
 use wintun::{load, Adapter, Packet, Session};
 
 const INITIAL_IP_VALUE: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0);
@@ -103,7 +104,7 @@ async fn tun_to_udp(
         let temp_value: Packet = packet.expect("Could not extract the packet data");
         let data: &[u8] = temp_value.bytes();
 
-        let ans: Option<PacketFormat> = parse_data(data);
+        let ans: Result<PacketFormat, PacketError> = parse_data(data);
         match ans {
             Some(packet_format) => {
                 let addr: SocketAddr = { *client_addr.lock().unwrap() };
