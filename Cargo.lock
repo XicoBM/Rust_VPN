@@ -577,6 +577,7 @@ dependencies = [
  "tokio",
  "tun",
  "vpn_core",
+ "vpn_errors",
  "wintun",
 ]
 

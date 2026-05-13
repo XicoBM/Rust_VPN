@@ -5,6 +5,7 @@ use tokio::{
     task::{spawn, spawn_blocking, JoinHandle},
 };
 use vpn_core::packet::{parse_data, PacketFormat, Protocol};
+use vpn_errors::packet::PacketError;
 use wintun::{load, Adapter, Packet, Session};
 
 #[tokio::main]
@@ -66,9 +67,9 @@ async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
         let temp_value: Packet = packet.expect("Could not extract the packet data");
         let data: &[u8] = temp_value.bytes();
 
-        let ans: Option<PacketFormat> = parse_data(data);
+        let ans: Result<PacketFormat, PacketError> = parse_data(data);
         match ans {
-            Some(packet_format) => {
+            Ok(packet_format) => {
                 let len: usize = socket
                     .send(data)
                     .await
@@ -81,7 +82,7 @@ async fn tun_to_udp(wintun_session: Arc<Session>, socket: Arc<UdpSocket>) -> () 
                     len, origin_ip, destin_ip, protocol
                 );
             }
-            None => println!("Invalid packet"),
+            Err(_) => println!("Invalid packet"),
         }
     }
 }

@@ -106,7 +106,7 @@ async fn tun_to_udp(
 
         let ans: Result<PacketFormat, PacketError> = parse_data(data);
         match ans {
-            Some(packet_format) => {
+            Ok(packet_format) => {
                 let addr: SocketAddr = { *client_addr.lock().unwrap() };
                 if addr == INITIAL_IP_VALUE {
                     continue;
@@ -116,14 +116,14 @@ async fn tun_to_udp(
                     .await
                     .expect("Could not send data through UDP tunnel.");
                 let origin_ip: IpAddr = packet_format.ip_origin;
-                let destin_ip: IpAddr = packet_format.ip_destination;
+                   let destin_ip: IpAddr = packet_format.ip_destination;
                 let protocol: Protocol = packet_format.protocol;
                 println!(
                     "{:?} bytes sent from {} to {} using {:?} protocol",
                     len, origin_ip, destin_ip, protocol
                 );
             }
-            None => println!("Invalid packet"),
+            Err(_) => println!("Invalid packet"),
         }
     }
 }

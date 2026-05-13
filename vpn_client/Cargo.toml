@@ -8,3 +8,4 @@ tokio = { workspace = true }
 tun = { version = "*" , features = [ "async" ] }
 wintun = "0.5.1"
 vpn_core = { path = "../vpn_core" }
+vpn_errors = { path = "../vpn_errors" }
