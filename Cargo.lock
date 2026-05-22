@@ -3,6 +3,12 @@
 version = 4
 
 [[package]]
+name = "anyhow"
+version = "1.0.102"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
+
+[[package]]
 name = "async-channel"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -574,6 +580,7 @@ checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
 name = "vpn_client"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "tokio",
  "tun",
  "vpn_core",
@@ -593,13 +600,14 @@ dependencies = [
 name = "vpn_errors"
 version = "0.1.0"
 dependencies = [
- "thiserror 1.0.69",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "vpn_server"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "tokio",
  "vpn_core",
  "vpn_errors",

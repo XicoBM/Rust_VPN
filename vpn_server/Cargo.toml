@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.102"
 tokio = { workspace = true }
 vpn_core = { path = "../vpn_core" }
 vpn_errors = { path = "../vpn_errors" }

@@ -16,4 +16,7 @@ pub enum PacketError {
 
     #[error("Size declared in header: ({0}) bytes does not match real size: ({1}) bytes")]
     LengthMismatch(usize, usize),
+
+    #[error("Could not convert buffer size: ({0}), into the numeric type")]
+    BufferProb(usize),
 }

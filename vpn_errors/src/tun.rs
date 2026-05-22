@@ -11,8 +11,8 @@ pub enum TunError {
     #[error("Failed to start session: {0}")]
     SessionStartFailed(String),
 
-    #[error("Failed to alocate exit packet: {0}")]
-    PacketAllocationFailed(String),
+    #[error("Failed to alocate exit packet")]
+    PacketAllocationFailed(),
 
     #[error("Failed to config IP address of '{adapter}': {reason}")]
     IpConfigFailed { adapter: String, reason: String },
