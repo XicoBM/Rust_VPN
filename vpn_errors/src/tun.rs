@@ -12,7 +12,7 @@ pub enum TunError {
     SessionStartFailed(String),
 
     #[error("Failed to alocate exit packet")]
-    PacketAllocationFailed(),
+    PacketAllocationFailed,
 
     #[error("Failed to config IP address of '{adapter}': {reason}")]
     IpConfigFailed { adapter: String, reason: String },

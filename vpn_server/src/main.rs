@@ -91,7 +91,7 @@ async fn udp_to_tun(
         update_addr(&client_addr, res.1);
 
         let temp: Result<Packet, wintun::Error> = wintun_session.allocate_send_packet(size);
-        let mut packet_out: Packet = temp.map_err(|_| TunError::PacketAllocationFailed())?;
+        let mut packet_out: Packet = temp.map_err(|_| TunError::PacketAllocationFailed)?;
         let packet_bytes: &mut [u8] = packet_out.bytes_mut();
 
         packet_bytes.copy_from_slice(&buf[..res.0]);

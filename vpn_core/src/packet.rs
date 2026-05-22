@@ -23,8 +23,6 @@ pub enum Protocol {
 }
 
 const MINIMUM_PACKET_SIZE: usize = 20;
-const IPV4_ADDR_SIZE: usize = 4;
-const IPV6_ADDR_SIZE: usize = 6;
 
 pub fn parse_data(data: &[u8]) -> Result<PacketFormat, PacketError> {
     if data.len() < 20 {
@@ -37,27 +35,23 @@ pub fn parse_data(data: &[u8]) -> Result<PacketFormat, PacketError> {
     let protocol: Protocol;
 
     if ip_version == 4 {
-        let origin_size: usize = data[12..16].len();
         origin_ip = IpAddr::from(
             <[u8; 4]>::try_from(&data[12..16])
-                .map_err(|_| PacketError::TooShort(origin_size, IPV4_ADDR_SIZE))?,
+                .unwrap(),
         );
-        let destin_size: usize = data[16..20].len();
         destin_ip = IpAddr::from(
             <[u8; 4]>::try_from(&data[16..20])
-                .map_err(|_| PacketError::TooShort(destin_size, IPV4_ADDR_SIZE))?,
+                .unwrap(),
         );
         protocol = parse_protocol(data[9]);
     } else if ip_version == 6 {
-        let origin_size: usize = data[8..24].len();
         origin_ip = IpAddr::from(
             <[u8; 16]>::try_from(&data[8..24])
-                .map_err(|_| PacketError::TooShort(origin_size, IPV6_ADDR_SIZE))?,
+                .unwrap(),
         );
-        let destin_size: usize = data[24..40].len();
         destin_ip = IpAddr::from(
             <[u8; 16]>::try_from(&data[24..40])
-                .map_err(|_| PacketError::TooShort(destin_size, IPV6_ADDR_SIZE))?,
+                .unwrap(),
         );
         protocol = parse_protocol(data[6]);
     } else {
