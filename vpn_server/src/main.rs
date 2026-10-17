@@ -24,6 +24,7 @@ async fn main() -> anyhow::Result<()> {
             reason: e.to_string(),
         })?;
 
+    println!(("sou gay"));
     // Wintun IP config
     let _output: Result<std::process::Output, std::io::Error> = Command::new("netsh")
         .args([
